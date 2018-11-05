@@ -13,57 +13,57 @@ import-module "C:\Program Files\Citrix\Receiver StoreFront\Scripts\ImportModules
 $UseNewUI = "no"
 
 # Set up Store Variables
-$baseurl = "https://workspace.bretty.me.uk"
-$Farmname = "xd7x"
+$baseurl = "https://storefront.onfido.com"
+$Farmname = "OnFido_Production_CCloud"
 $Port = "443"
 $TransportType = "HTTPS"
 $sslRelayPort = "443"
-$Servers = "xd.bretty.me.uk"
+$Servers = "citrixcc.onfido.com"
 $LoadBalance = $true
 $FarmType = "XenDesktop"
-$FriendlyName = "Bretty"
-$SFPath = "/Citrix/Bretty"
-$SFPathWeb = "/Citrix/BrettyWeb"
-$SFPathDA = "/Citrix/BrettyDesktopAppliance"
+$FriendlyName = "OnFido"
+$SFPath = "/Citrix/OnFido"
+$SFPathWeb = "/Citrix/OnFidoWeb"
+$SFPathDA = "/Citrix/OnFidoDesktopAppliance"
 $SiteID = 1
 
 # Define Gateway
-$GatewayAddress = "https://workspace.bretty.me.uk"
+#$GatewayAddress = "https://workspace.bretty.me.uk"
 
 # Define Beacons
-$InternalBeacon = "https://workspaceac.bretty.me.uk"
-$ExternalBeacon1 = "https://workspace.bretty.me.uk"
+$InternalBeacon = "https://storefront.onfido.com"
+#$ExternalBeacon1 = "https://workspace.bretty.me.uk"
 $ExternalBeacon2 = "https://www.citrix.com"
 
 # Define NetScaler Variables
-$GatewayName = "workspace.bretty.me.uk"
-$staservers = "https://xd.bretty.me.uk/scripts/ctxsta.dll"
-$CallBackURL = "https://workspacecb.bretty.me.uk"
+#$GatewayName = "workspace.bretty.me.uk"
+#$staservers = "https://xd.bretty.me.uk/scripts/ctxsta.dll"
+#$CallBackURL = "https://workspacecb.bretty.me.uk"
 
 # Define Trusted Domains
 $AuthPath = "/Citrix/Authentication"
-$Domain1 = "bretty.me.uk"
-$Domain2 = "bretty.local"
+$Domain1 = "onfido.com"
+#$Domain2 = "null"
 $DefaultDomain = $Domain1
 
 # Do the initial Config
 Set-DSInitialConfiguration -hostBaseUrl $baseurl -farmName $Farmname -port $Port -transportType $TransportType -sslRelayPort $sslRelayPort -servers $Servers -loadBalance $LoadBalance -farmType $FarmType -StoreFriendlyName $FriendlyName -StoreVirtualPath $SFPath -WebReceiverVirtualPath $SFPathWeb -DesktopApplianceVirtualPath $SFPathDA
 
 # Add NetScaler Gateway
-$GatewayID = ([guid]::NewGuid()).ToString()
-Add-DSGlobalV10Gateway -Id $GatewayID -Name $GatewayName -Address $GatewayAddress -CallbackUrl $CallBackURL -RequestTicketTwoSTA $false -Logon Domain -SessionReliability $true -SecureTicketAuthorityUrls $staservers -IsDefault $true
+#$GatewayID = ([guid]::NewGuid()).ToString()
+#Add-DSGlobalV10Gateway -Id $GatewayID -Name $GatewayName -Address $GatewayAddress -CallbackUrl $CallBackURL -RequestTicketTwoSTA $false -Logon Domain -SessionReliability $true -SecureTicketAuthorityUrls $staservers -IsDefault $true
 
 # Add Gateway to Store
-$gateway = Get-DSGlobalGateway -GatewayId $GatewayID
-$AuthService = Get-STFAuthenticationService -SiteID $SiteID -VirtualPath $AuthPath
-Set-DSStoreGateways -SiteId $SiteID -VirtualPath $SFPath -Gateways $gateway
-Set-DSStoreRemoteAccess -SiteId $SiteID -VirtualPath $SFPath -RemoteAccessType "StoresOnly"
-Add-DSAuthenticationProtocolsDeployed -SiteId $SiteID -VirtualPath $AuthPath -Protocols CitrixAGBasic
-Set-DSWebReceiverAuthenticationMethods -SiteId $SiteID -VirtualPath $SFPathWeb -AuthenticationMethods ExplicitForms,CitrixAGBasic
-Enable-STFAuthenticationServiceProtocol -AuthenticationService $AuthService -Name CitrixAGBasic
+#$gateway = Get-DSGlobalGateway -GatewayId $GatewayID
+#$AuthService = Get-STFAuthenticationService -SiteID $SiteID -VirtualPath $AuthPath
+#Set-DSStoreGateways -SiteId $SiteID -VirtualPath $SFPath -Gateways $gateway
+#Set-DSStoreRemoteAccess -SiteId $SiteID -VirtualPath $SFPath -RemoteAccessType "StoresOnly"
+#Add-DSAuthenticationProtocolsDeployed -SiteId $SiteID -VirtualPath $AuthPath -Protocols CitrixAGBasic
+#Set-DSWebReceiverAuthenticationMethods -SiteId $SiteID -VirtualPath $SFPathWeb -AuthenticationMethods ExplicitForms,CitrixAGBasic
+#Enable-STFAuthenticationServiceProtocol -AuthenticationService $AuthService -Name CitrixAGBasic
 
-# Add beacon External
-Set-STFRoamingBeacon -internal $InternalBeacon -external $ExternalBeacon1,$ExternalBeacon2
+# Add beacon External (MAKE SURE TO ADD ANY EXTRA'S IN HERE)
+Set-STFRoamingBeacon -internal $InternalBeacon -external $ExternalBeacon2
 
 # Enable Unified Experience
 $Store = Get-STFStoreService -siteID $SiteID -VirtualPath $SFPath
@@ -77,10 +77,10 @@ Set-STFWebReceiverService -WebReceiverService $Rfw -DefaultIISSite:$True
 Set-STFExplicitCommonOptions -AuthenticationService $AuthService -Domains $Domain1,$Domain2 -DefaultDomain $DefaultDomain -HideDomainField $True -AllowUserPasswordChange Always -ShowPasswordExpiryWarning Windows
 
 # Enable the authentication methods
-Enable-STFAuthenticationServiceProtocol -AuthenticationService $AuthService -Name Forms-Saml,Certificate
+#Enable-STFAuthenticationServiceProtocol -AuthenticationService $AuthService -Name Forms-Saml,Certificate
 
 # Fully Delegate Cred Auth to NetScaler Gateway
-Set-STFCitrixAGBasicOptions -AuthenticationService $AuthService -CredentialValidationMode Kerberos
+#Set-STFCitrixAGBasicOptions -AuthenticationService $AuthService -CredentialValidationMode Kerberos
 
 # Create Featured App Groups
 $FeaturedGroup = New-STFWebReceiverFeaturedAppGroup `
@@ -125,11 +125,11 @@ If($UseNewUI -eq "yes"){
 }
 
 # Copy down branding
-Copy-Item -Path "\\bdt\mdtproduction$\Applications\Scripts\bretty\custom\storefront\branding\background.png" -Destination "C:\iNetPub\wwwroot\$SFPathWeb\custom" -Recurse -Force
-Copy-Item -Path "\\bdt\mdtproduction$\Applications\Scripts\bretty\custom\storefront\branding\logo.png" -Destination "C:\iNetPub\wwwroot\$SFPathWeb\custom" -Recurse -Force
-Copy-Item -Path "\\bdt\mdtproduction$\Applications\Scripts\bretty\custom\storefront\branding\hlogo.png" -Destination "C:\iNetPub\wwwroot\$SFPathWeb\custom" -Recurse -Force
-Copy-Item -Path "\\bdt\mdtproduction$\Applications\Scripts\bretty\custom\storefront\branding\strings.en.js" -Destination "C:\iNetPub\wwwroot\$SFPathWeb\custom" -Recurse -Force
-Copy-Item -Path "\\bdt\mdtproduction$\Applications\Scripts\bretty\custom\storefront\branding\style.css" -Destination "C:\iNetPub\wwwroot\$SFPathWeb\custom" -Recurse -Force
+#Copy-Item -Path "\\bdt\mdtproduction$\Applications\Scripts\bretty\custom\storefront\branding\background.png" -Destination "C:\iNetPub\wwwroot\$SFPathWeb\custom" -Recurse -Force
+#Copy-Item -Path "\\bdt\mdtproduction$\Applications\Scripts\bretty\custom\storefront\branding\logo.png" -Destination "C:\iNetPub\wwwroot\$SFPathWeb\custom" -Recurse -Force
+#Copy-Item -Path "\\bdt\mdtproduction$\Applications\Scripts\bretty\custom\storefront\branding\hlogo.png" -Destination "C:\iNetPub\wwwroot\$SFPathWeb\custom" -Recurse -Force
+#Copy-Item -Path "\\bdt\mdtproduction$\Applications\Scripts\bretty\custom\storefront\branding\strings.en.js" -Destination "C:\iNetPub\wwwroot\$SFPathWeb\custom" -Recurse -Force
+#Copy-Item -Path "\\bdt\mdtproduction$\Applications\Scripts\bretty\custom\storefront\branding\style.css" -Destination "C:\iNetPub\wwwroot\$SFPathWeb\custom" -Recurse -Force
 
 Write-Verbose "Stop logging" -Verbose
 $EndDTM = (Get-Date)
