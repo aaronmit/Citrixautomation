@@ -1,9 +1,0 @@
-az login
-
-az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/${SUBSCRIPTION_ID}"
-
-  "appId": "6a57b012-8830-4172-97dc-53efba9814f0",
-  "displayName": "azure-cli-2018-11-16-16-06-50",
-  "name": "http://azure-cli-2018-11-16-16-06-50",
-  "password": "4b57bd98-6531-479b-938e-75dc4cec811a",
-  "tenant": "8fdb8f12-e348-4d64-b643-9823ddfb810f"
