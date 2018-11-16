@@ -1,0 +1,4 @@
+ALTER AVAILABILITY GROUP [bag-xendesktop_site] 
+    MODIFY REPLICA ON 'sql02' 
+    WITH (SEEDING_MODE = AUTOMATIC)
+GO
