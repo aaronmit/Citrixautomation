@@ -1,0 +1,7 @@
+git config user.email "aaron.langley@metaphor-it.co.uk"
+git config user.name "aaronMIT"
+
+ssh-keygen -t rsa -b 4096 -C "aaron.langley@metaphor-it.co.uk"
+eval "$(ssh-agent -s)"
+ssh-add -K ~/.ssh/id_rsa
+pbcopy < ~/.ssh/id_rsa.pub

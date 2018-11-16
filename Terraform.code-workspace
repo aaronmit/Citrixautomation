@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "Terraform"
+		},
+		{
+			"path": "PoSH"
+		},
+		{
+			"path": "Misc"
+		}
+	],
+	"settings": {}
+}

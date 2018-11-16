@@ -1,0 +1,14 @@
+<General>
+
+</General>
+
+<Delivery>
+    <SiteDB>CTX_Site</SiteDB>
+    <LogDB>CTX_Log</LogDB>
+    <MonitDB>CTX_Monitor</MonitDB>
+    <SiteName>XD7Site</SiteName>
+</Delivery>
+
+<Sfront>
+
+</Sfront>
