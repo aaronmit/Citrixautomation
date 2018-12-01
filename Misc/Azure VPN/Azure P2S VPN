@@ -1,0 +1,39 @@
+ipsec pki --gen --outform pem > caKey.pem
+
+
+
+
+
+
+
+openssl genrsa -aes256 -out Az_MITDev.key 2048
+openssl req -x509 -sha256 -new -key Az_MitDev.key -out Az_MitDev.cer -days 3650 -subj /CN=”MyAzureVPN”
+
+openssl genrsa -out Az_MITDev_Client.key 2048
+openssl req -new -out Az_MITDev_Client.req -key Az_MITDev_Client.key -subj /CN="Az_MitDev"
+openssl x509 -req -sha256 -in Az_MITDev_Client.req -out Az_MITDev_Client.cer -CAkey Az_MITDev.key -CA Az_MitDev.cer -days 1800 -CAcreateserial -CAserial serial
+openssl pkcs12 -export -out Az_MITDev_Client.pfx -inkey Az_MITDev_Client.key -in Az_MITDev_Client.cer -certfile Az_MitDev.cer
+
+openssl pkcs12 -in Az_MITDev_Client.pfx -nokeys -out publiccert.pem -nodes
+
+openssl pkcs12 -in "publiccert.pem" -nokeys -certfile Az_MitDev.cer -export -out "publiccert.p12"
+#ll client.p12
+
+
+## POSH
+
+$cert = New-SelfSignedCertificate -Type Custom -KeySpec Signature `
+-Subject "CN=P2SRootCert" -KeyExportPolicy Exportable `
+-HashAlgorithm sha256 -KeyLength 2048 `
+-CertStoreLocation "Cert:\CurrentUser\My" -KeyUsageProperty Sign -KeyUsage CertSign
+
+
+New-SelfSignedCertificate -Type Custom -DnsName P2SChildCert -KeySpec Signature `
+-Subject "CN=P2SChildCert" -KeyExportPolicy Exportable `
+-HashAlgorithm sha256 -KeyLength 2048 `
+-CertStoreLocation "Cert:\CurrentUser\My" `
+-Signer $cert -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.2")
+
+
+
+ipsec pki --gen --outform pem > caKey.pem
