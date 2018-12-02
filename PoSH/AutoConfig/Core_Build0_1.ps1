@@ -57,7 +57,7 @@ powercfg /change disk-timeout-ac 0
 powercfg /change disk-timeout-dc 60
 
 #Install RSAT tools
-Get-WindowsCapability -Name RSAT* -Online | Add-WindowsCapability -Online
+#Get-WindowsCapability -Name RSAT* -Online | Add-WindowsCapability -Online
 
 #Starts Windows Update
 Install-Module PSWindowsUpdate
@@ -74,3 +74,4 @@ Get-WUInstall –MicrosoftUpdate -Download -Install –AcceptAll –AutoReboot
 #Set NTP/Region
 #Install Webroot/Labtech
 #Disable local admin account, create new and generate random password
+#Add computer into Server Manager pool (Especially with Core)
