@@ -21,8 +21,9 @@ set-timezone -name $TimeZone
 # Set Up New Domain
 $DomainName = "adlang.local"
 $Password = "ReallySecure"
+$dcname = "ADC01"
 
-Install-WindowsFeature AD-Domain-Services -includemanagementtools
+#Install-WindowsFeature AD-Domain-Services -includemanagementtools
 $SecurePassword = ConvertTo-SecureString -AsPlainText $Password -Force
 Install-ADDSforest -DomainName $DomainName -InstallDNS -safemodeadministratorpassword $SecurePassword -force
 
@@ -34,10 +35,10 @@ Add-DNSServerPrimaryZone -networkid "192.168.0.0/24" -replicationscope "Forest"
 Install-WindowsFeature -Name FS-DFS-Namespace,FS-DFS-Replication -IncludeManagementTools 
 New-Item -ItemType Directory -Path C:\dfs
 New-SmbShare -Name dfs$ -Path C:\dfs -FullAccess Administrators -ReadAccess Users
-New-DfsnRoot -Path \\$DomainName\public -TargetPath \\dc\dfs$  -Type DomainV2 -EnableSiteCosting $true
+New-DfsnRoot -Path \\$DomainName\public -TargetPath \\$dcname\dfs$  -Type DomainV2 -EnableSiteCosting $true
 New-Item -ItemType Directory -Path C:\infrastructure
 New-SmbShare -Name infrastructure$ -Path C:\infrastructure -FullAccess Administrators -ReadAccess Users
-New-DfsnFolder -Path \\$DomainName\public\infrastructure -TargetPath \\dc\infrastructure$
+New-DfsnFolder -Path \\$DomainName\public\infrastructure -TargetPath \\$dcname\infrastructure$
 
 # Set Up Certificate Authority
 Install-WindowsFeature AD-Certificate -IncludeManagementTools 
@@ -106,8 +107,8 @@ New-ADOrganizationalUnit -Name "workers" -Path "ou=ADLANG,dc=ADLANG,dc=local" -P
 # Set up Sites and Services
 Get-ADObject -SearchBase (Get-ADRootDSE).ConfigurationNamingContext -filter "objectclass -eq 'site'" | Set-ADObject -DisplayName Base
 Get-ADObject -SearchBase (Get-ADRootDSE).ConfigurationNamingContext -filter "objectclass -eq 'site'" | Rename-ADObject -NewName Base
-New-ADReplicationSubnet -Name "192.168.0.0/24" -Site Liphook
-New-ADReplicationSubnet -Name "192.168.1.0/24" -Site Liphook
+New-ADReplicationSubnet -Name "192.168.0.0/24" -Site Base
+New-ADReplicationSubnet -Name "192.168.1.0/24" -Site Base
 
 # Add UPN Suffix for Domain
 Get-ADForest | Set-ADForest -UPNSuffixes @{add="adlang.local"}
@@ -117,9 +118,9 @@ Get-ADForest | Set-ADForest -UPNSuffixes @{add="adlang.local"}
 # https://xenappblog.com/2017/automate-wsus-on-windows-2016-server-core/
 
 Install-WindowsFeature -Name UpdateServices -IncludeManagementTools
-New-Item -Path E: -Name WSUS -ItemType Directory
-New-SmbShare -Name wsus$ -Path e:\wsus -FullAccess Administrators -ReadAccess Users
-New-DfsnFolder -Path \\$DomainName\public\wsus -TargetPath \\dc\wsus$
+New-Item -Path C: -Name WSUS -ItemType Directory
+New-SmbShare -Name wsus$ -Path C:\wsus -FullAccess Administrators -ReadAccess Users
+New-DfsnFolder -Path \\$DomainName\public\wsus -TargetPath \\$dcname\wsus$
 CD "C:\Program Files\Update Services\Tools"
 .\wsusutil.exe postinstall CONTENT_DIR=E:\WSUS
 
@@ -155,7 +156,7 @@ $wsusconfig.OobeInitialized = $true
 $wsusConfig.Save()
 
 # Create GPO to force WSUS to Domain
-New-GPO -Name bretty_wsus
+New-GPO -Name adlang_wsus
 Set-GPRegistryValue -Name "adlang_wsus" -key "HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate" -ValueName WUServer -Type String -value http://wsus.adlang.local:8530
 Set-GPRegistryValue -Name "adlang_wsus" -key "HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate" -ValueName WUStatusServer -Type String -value http://wsus.adlang.local:8530
 Set-GPRegistryValue -Name "adlang_wsus" -key "HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\AU" -ValueName AUOptions -Type Dword -value 4
@@ -163,3 +164,6 @@ Set-GPRegistryValue -Name "adlang_wsus" -key "HKLM\Software\Policies\Microsoft\W
 Set-GPRegistryValue -Name "adlang_wsus" -key "HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\AU" -ValueName ScheduledInstallTime -Type Dword -value 1
 
 New-GPLink -Name "adlang_wsus" -Target "dc=ADLANG,dc=local" -LinkEnabled Yes
+
+
+# Install windows admin center https://docs.microsoft.com/en-gb/windows-server/manage/windows-admin-center/understand/windows-admin-center
